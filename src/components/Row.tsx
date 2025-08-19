@@ -4,14 +4,15 @@ import { Movie } from '@/types';
 import Image from 'next/image';
 import { useRef, useState } from 'react';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import Link from 'next/link';
 
 interface RowProps {
   title: string;
   movies: Movie[];
-  mediaType?: 'movie' | 'tv';
+  mediaType?: 'movie' | 'tv' | 'all';
 }
 
-const Row = ({ title, movies, mediaType = 'movie' }: RowProps) => {
+const Row = ({ title, movies, mediaType = 'all' }: RowProps) => {
   const rowRef = useRef<HTMLDivElement>(null);
   const [isMoved, setIsMoved] = useState(false);
 
@@ -47,35 +48,39 @@ const Row = ({ title, movies, mediaType = 'movie' }: RowProps) => {
           ref={rowRef}
         >
           {movies.map((movie) => (
-            <div
+            <Link 
+              href={`/${mediaType === 'all' ? (movie.media_type || 'movie') : mediaType}/${movie.id}`}
               key={movie.id}
-              className="movie-card relative h-28 min-w-[180px] cursor-pointer transition duration-200 ease-out md:h-36 md:min-w-[260px] md:hover:scale-105"
+              className="block movie-card relative h-28 min-w-[180px] cursor-pointer transition duration-200 ease-out md:h-36 md:min-w-[260px] md:hover:scale-105"
             >
-              <Image
-                src={`https://image.tmdb.org/t/p/w500${
-                  movie.backdrop_path || movie.poster_path
-                }`}
-                className="rounded-sm object-cover md:rounded"
-                layout="fill"
-                alt={movie.title || movie.name || 'Movie'}
-              />
-              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2 text-white">
-                <h3 className="text-sm font-semibold">
-                  {movie.title || movie.name}
-                </h3>
-                <div className="flex items-center space-x-1 text-xs">
-                  <span className="text-green-400">
-                    {Math.round((movie.vote_average || 0) * 10)}% Match
-                  </span>
-                  <span>•</span>
-                  <span>
-                    {mediaType === 'tv' 
-                      ? `${movie.first_air_date?.substring(0, 4) || 'N/A'}` 
-                      : `${movie.release_date?.substring(0, 4) || 'N/A'}`}
-                  </span>
+              <div className="relative w-full h-full">
+                <Image
+                  src={`https://image.tmdb.org/t/p/w500${
+                    movie.backdrop_path || movie.poster_path
+                  }`}
+                  className="rounded-sm object-cover md:rounded"
+                  fill
+                  alt={movie.title || movie.name || 'Movie'}
+                  sizes="(max-width: 768px) 180px, 260px"
+                />
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2 text-white">
+                  <h3 className="text-sm font-semibold line-clamp-1">
+                    {movie.title || movie.name}
+                  </h3>
+                  <div className="flex items-center space-x-1 text-xs">
+                    <span className="text-green-400">
+                      {Math.round((movie.vote_average || 0) * 10)}% Match
+                    </span>
+                    <span>•</span>
+                    <span>
+                      {mediaType === 'tv' 
+                        ? `${movie.first_air_date?.substring(0, 4) || 'N/A'}` 
+                        : `${movie.release_date?.substring(0, 4) || 'N/A'}`}
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
         

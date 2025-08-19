@@ -1,26 +1,15 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { Movie } from '@/types';
 import { FaPlay } from 'react-icons/fa';
 import { InformationCircleIcon } from '@heroicons/react/24/outline';
 
 interface BannerProps {
-  movies: Movie[];
+  movie: Movie | null;
 }
 
-const Banner = ({ movies }: BannerProps) => {
-  const [movie, setMovie] = useState<Movie | null>(null);
-
-  useEffect(() => {
-    // Select a random movie for the banner
-    if (movies.length > 0) {
-      const randomMovie = movies[Math.floor(Math.random() * movies.length)];
-      setMovie(randomMovie);
-    }
-  }, [movies]);
-
+const Banner = ({ movie }: BannerProps) => {
   if (!movie) {
     return <div className="h-[56.25vw] bg-gray-900" />;
   }

@@ -1,55 +1,129 @@
 import Banner from '@/components/Banner';
 import Row from '@/components/Row';
+import { fetchFromTMDB } from '@/lib/tmdb';
 
-// TMDB API Configuration
-const API_KEY = '46d13701165988b5bb5fb4d123c0447e';
-const BASE_URL = 'https://api.themoviedb.org/3';
+// Fetch data for the homepage
+const fetchHomePageData = async () => {
+  try {
+    const [
+      trendingNow,
+      topRatedMovies,
+      popularTv,
+      actionMovies,
+      comedyMovies,
+      documentaries,
+      trendingTv,
+      topRatedTv,
+    ] = await Promise.all([
+      // Trending across all (movies and TV)
+      fetchFromTMDB('/trending/all/week'),
+      
+      // Movies
+      fetchFromTMDB('/movie/top_rated'),
+      fetchFromTMDB('/tv/popular'),
+      fetchFromTMDB('/discover/movie', { with_genres: '28' }), // Action
+      fetchFromTMDB('/discover/movie', { with_genres: '35' }), // Comedy
+      fetchFromTMDB('/discover/movie', { with_genres: '99' }), // Documentary
+      
+      // TV Shows
+      fetchFromTMDB('/trending/tv/day'),
+      fetchFromTMDB('/tv/top_rated'),
+    ] as const);
 
-// Fetch trending movies
-const fetchTrending = async () => {
-  const res = await fetch(
-    `${BASE_URL}/trending/all/week?api_key=${API_KEY}&language=en-US`
-  );
-  return res.json();
-};
-
-// Fetch top rated movies
-const fetchTopRated = async () => {
-  const res = await fetch(
-    `${BASE_URL}/movie/top_rated?api_key=${API_KEY}&language=en-US`
-  );
-  return res.json();
-};
-
-// Fetch popular TV shows
-const fetchTvPopular = async () => {
-  const res = await fetch(
-    `${BASE_URL}/tv/popular?api_key=${API_KEY}&language=en-US`
-  );
-  return res.json();
+    return {
+      trendingNow: trendingNow.results,
+      topRatedMovies: topRatedMovies.results,
+      popularTv: popularTv.results,
+      actionMovies: actionMovies.results,
+      comedyMovies: comedyMovies.results,
+      documentaries: documentaries.results,
+      trendingTv: trendingTv.results,
+      topRatedTv: topRatedTv.results,
+    };
+  } catch (error) {
+    console.error('Error fetching homepage data:', error);
+    throw error;
+  }
 };
 
 export default async function Home() {
-  const [trendingNow, topRated, popularTv] = await Promise.all([
-    fetchTrending(),
-    fetchTopRated(),
-    fetchTvPopular(),
-  ]);
+  const {
+    trendingNow,
+    topRatedMovies,
+    popularTv,
+    actionMovies,
+    comedyMovies,
+    documentaries,
+    trendingTv,
+    topRatedTv,
+  } = await fetchHomePageData();
+
+  // Get a random movie for the banner
+  const bannerMovie = trendingNow && trendingNow.length > 0 
+    ? trendingNow[Math.floor(Math.random() * trendingNow.length)] 
+    : null;
 
   return (
     <main className="relative pb-24 lg:space-y-24">
-      {/* Banner */}
-      <Banner movies={trendingNow.results} />
+      {/* Banner with a random trending movie */}
+      <Banner movie={bannerMovie} />
       
       <section className="md:space-y-16">
-        {/* Trending Now */}
-        <Row title="Trending Now" movies={trendingNow.results} />
+        {/* Trending Now (All) */}
+        <Row 
+          title="Trending Now" 
+          movies={trendingNow} 
+          mediaType="all"
+        />
         
-        {/* Top Rated */}
-        <Row title="Top Rated" movies={topRated.results} />
+        {/* Top Rated Movies */}
+        <Row 
+          title="Top Rated Movies" 
+          movies={topRatedMovies} 
+          mediaType="movie"
+        />
         
         {/* Popular TV Shows */}
-        <Row title="Popular on Movie.Fun" movies={popularTv.results} mediaType="tv" />
+        <Row 
+          title="Popular TV Shows" 
+          movies={popularTv} 
+          mediaType="tv"
+        />
+        
+        {/* Action Movies */}
+        <Row 
+          title="Action Movies" 
+          movies={actionMovies} 
+          mediaType="movie"
+        />
+        
+        {/* Comedy Movies */}
+        <Row 
+          title="Comedy Movies" 
+          movies={comedyMovies} 
+          mediaType="movie"
+        />
+        
+        {/* Trending TV Shows */}
+        <Row 
+          title="Trending TV Shows" 
+          movies={trendingTv} 
+          mediaType="tv"
+        />
+        
+        {/* Top Rated TV Shows */}
+        <Row 
+          title="Top Rated TV Shows" 
+          movies={topRatedTv} 
+          mediaType="tv"
+        />
+        
+        {/* Documentaries */}
+        <Row 
+          title="Documentaries" 
+          movies={documentaries} 
+          mediaType="movie"
+        />
       </section>
     </main>
   );
